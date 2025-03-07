@@ -143,7 +143,7 @@ class Go2Leg:
                 self.send_cmd()                
             
             print(f"\n")
-        self.cmd.motor_cmd[go2.LegID["FR_0"]].tau = 5.0
+        self.cmd.motor_cmd[go2.LegID["FR_0"]].tau = 20.0
         self.send_cmd()
         # FR_0 = go2.LegID["FR_0"]
         # print(f"\n[INFO] Joint 'FR_0' pos: {self.channel.low_state.motor_state[FR_0].q}")
@@ -157,7 +157,8 @@ class Go2Leg:
         q_init = [0.0, -1.5, -2.8]
         q_des =  [0.0, 0.0, 0.0]
         
-        sim_mid_q = [0.0, -1.5, -1.1]
+        # sim_mid_q = [0.0, -1.5, -1.1]
+        sim_mid_q = [0.0, -1.5, 0] # normal
 
         for rate_count in range(10, 400):
             rate = float(rate_count) / 200.0

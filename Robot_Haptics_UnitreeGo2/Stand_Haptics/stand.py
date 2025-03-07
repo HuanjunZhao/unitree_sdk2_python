@@ -21,14 +21,9 @@ if __name__ == "__main__":
     sport_client.SetTimeout(10.0)
     sport_client.Init()
 
-    sport_client.Sit()
-    FR_0 = go2.LegID["FR_0"]
-    print(f"[INFO] Joint 'FR_0' pos: {self.channel.low_state.motor_state[FR_0].q}")
-    FR_1 = go2.LegID["FR_1"]
-    print(f"\n[INFO] Joint 'FR_1' pos: {self.channel.low_state.motor_state[FR_1].q}")
-    FR_2 = go2.LegID["FR_2"]
-    print(f"[INFO] Joint 'FR_2' pos: {self.channel.low_state.motor_state[FR_2].q} \n")    
-    time.sleep(5)
+    # sport_client.StandDown()
+    # sport_client.Sit()
+    # time.sleep(5)
     # sport_client.RiseSit()
-    # sport_client.StandUp()
+    sport_client.StandUp()
     # time.sleep(2)

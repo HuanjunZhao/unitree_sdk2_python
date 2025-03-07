@@ -261,6 +261,7 @@ class Go2Leg:
 
                 self.send_cmd()             
             print(f"[INFO] Complete phase 4. \n")  
+        return 0
     
 
 if __name__ == '__main__':
