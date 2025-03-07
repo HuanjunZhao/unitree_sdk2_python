@@ -113,8 +113,9 @@ class Go2Leg:
         q_init = [0.0, -1.5, -2.8]
         q_des =  [0.0, 0.0, 0.0]
         
-        # sim_mid_q = [0.0, -1.5, -1.1]
-        sim_mid_q = [0.0, -1.5, 0]
+        # sim_mid_q = [0.0, -1.5, -1.1] # light
+        sim_mid_q = [0.0, -1.5, 0] # normal
+        # sim_mid_q = [0.0, -1.5, 1] # smash
         moter_kp = 20.0
         for rate_count in range(10, 400):
             rate = float(rate_count) / 200.0
