@@ -130,7 +130,8 @@ class Custom:
                 self.low_cmd.motor_cmd[i].kp = self.Kp
                 self.low_cmd.motor_cmd[i].kd = self.Kd
                 self.low_cmd.motor_cmd[i].tau = 0
-
+        print("!!!!!!!!!!!")
+        time.sleep(10)
         if (self.percent_1 == 1) and (self.percent_2 == 1) and (self.percent_3 < 1):
             self.percent_3 += 1.0 / self.duration_3
             self.percent_3 = min(self.percent_3, 1)
