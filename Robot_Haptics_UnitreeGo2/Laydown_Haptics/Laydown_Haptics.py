@@ -142,8 +142,8 @@ class Go2Leg:
 
                 self.send_cmd()                
             
-            print(f"\n")
-        self.cmd.motor_cmd[go2.LegID["FR_0"]].tau = 20.0
+            # print(f"\n")
+        self.cmd.motor_cmd[go2.LegID["FR_0"]].kp = 60.0
         self.send_cmd()
         # FR_0 = go2.LegID["FR_0"]
         # print(f"\n[INFO] Joint 'FR_0' pos: {self.channel.low_state.motor_state[FR_0].q}")
@@ -153,13 +153,50 @@ class Go2Leg:
         # print(f"\n[INFO] Joint 'FR_2' pos: {self.channel.low_state.motor_state[FR_2].q} \n")                     
 
 
+    # def Knock(self):
+    #     q_init = [0.0, -1.5, -2.8]
+    #     q_des =  [0.0, 0.0, 0.0]
+        
+    #     # sim_mid_q = [0.0, -1.5, -1.1]
+    #     sim_mid_q = [0.0, -1.5, 0] # normal
+
+    #     for rate_count in range(10, 400):
+    #         rate = float(rate_count) / 200.0
+
+    #         for joint_idx in range(3):
+    #             q_des[joint_idx] = self.joint_linear_interpolation(q_init[joint_idx], sim_mid_q[joint_idx], rate)
+            
+    #         for joint_idx in range(3):
+    #             joint_offset = go2.LegID["FR_0"]
+    #             i = joint_offset + joint_idx
+    #             # print("FR_0 motor state: ", self.channel.low_state.motor_state[go2.LegID["FR_0"]])
+    #             # print("FR_0 motor state: ", go2.LegID["FR_0"])
+    #             self.cmd.motor_cmd[i].mode = 0x01  # (PMSM) mode
+    #             self.cmd.motor_cmd[i].q= q_des[joint_idx]
+    #             self.cmd.motor_cmd[i].kp = 20.0
+    #             self.cmd.motor_cmd[i].dq = 0.0 # Set to stop angular velocity(rad/s)
+    #             self.cmd.motor_cmd[i].kd = 1.0
+    #             self.cmd.motor_cmd[i].tau = 0.0
+
+    #             self.send_cmd()                
+            
+    #         print(f"\n")
+    #     # self.cmd.motor_cmd[go2.LegID["FR_0"]].tau = 5.0
+    #     self.send_cmd()
+    #     FR_0 = go2.LegID["FR_0"]
+    #     print(f"\n[INFO] Joint 'FR_0' pos: {self.channel.low_state.motor_state[FR_0].q}")
+    #     FR_1 = go2.LegID["FR_1"]
+    #     print(f"\n[INFO] Joint 'FR_1' pos: {self.channel.low_state.motor_state[FR_1].q}")
+    #     FR_2 = go2.LegID["FR_2"]
+    #     print(f"\n[INFO] Joint 'FR_2' pos: {self.channel.low_state.motor_state[FR_2].q} \n")                     
     def Knock(self):
         q_init = [0.0, -1.5, -2.8]
         q_des =  [0.0, 0.0, 0.0]
         
-        # sim_mid_q = [0.0, -1.5, -1.1]
-        sim_mid_q = [0.0, -1.5, 0] # normal
-
+        # sim_mid_q = [0.0, -1.5, -1.1] # light
+        # sim_mid_q = [0.0, -1.5, 0] # normal
+        # sim_mid_q = [0.0, -1.5, 1] # smash
+        moter_kp = 20.0
         for rate_count in range(10, 400):
             rate = float(rate_count) / 200.0
 
@@ -173,14 +210,13 @@ class Go2Leg:
                 # print("FR_0 motor state: ", go2.LegID["FR_0"])
                 self.cmd.motor_cmd[i].mode = 0x01  # (PMSM) mode
                 self.cmd.motor_cmd[i].q= q_des[joint_idx]
-                self.cmd.motor_cmd[i].kp = 20.0
+                self.cmd.motor_cmd[i].kp = moter_kp
                 self.cmd.motor_cmd[i].dq = 0.0 # Set to stop angular velocity(rad/s)
                 self.cmd.motor_cmd[i].kd = 1.0
                 self.cmd.motor_cmd[i].tau = 0.0
 
                 self.send_cmd()                
             
-            print(f"\n")
         self.cmd.motor_cmd[go2.LegID["FR_0"]].tau = 5.0
         self.send_cmd()
         FR_0 = go2.LegID["FR_0"]
@@ -189,37 +225,6 @@ class Go2Leg:
         print(f"\n[INFO] Joint 'FR_1' pos: {self.channel.low_state.motor_state[FR_1].q}")
         FR_2 = go2.LegID["FR_2"]
         print(f"\n[INFO] Joint 'FR_2' pos: {self.channel.low_state.motor_state[FR_2].q} \n")                     
-    # def wave_leg(self):
-
-    #     #-2.8 -  -1.2
-    #     q_des = [0.0, 0.0, 0.0]
-    #     joint_idx = go2.LegID["FR_2"]
-
-    #     dt = 0.001 
-    #     freq_Hz = 1.0   
-    #     freq_rad = freq_Hz * 2.0 * math.pi
-
-    #     sim_mid_q = [0.0, 1.2, -2.0]
-    #     k_p = [5.0, 5.0, 5.0]
-    #     k_d = [1.0, 1.0, 1.0]
-
-    #     for sin_count in range(10000):
-
-    #         t = dt * float(sin_count)
-    #         sin_joint1 = 0.6 * math.sin(t * freq_rad)
-    #         sin_joint2 = -0.9 * math.sin(t * freq_rad)   
-    #         q_des[0] = sim_mid_q[0]
-    #         q_des[1] = sim_mid_q[1] + sin_joint1
-    #         q_des[2] = sim_mid_q[2] + sin_joint2                 
-
-    #         self.cmd.motor_cmd[joint_idx].mode = 0x01  # (PMSM) mode
-    #         self.cmd.motor_cmd[joint_idx].q= q_des[2]
-    #         self.cmd.motor_cmd[joint_idx].kp = k_p[2]
-    #         self.cmd.motor_cmd[joint_idx].dq = 0.0   # Set to stop angular velocity(rad/s)
-    #         self.cmd.motor_cmd[joint_idx].kd = k_d[2]
-    #         self.cmd.motor_cmd[joint_idx].tau = 0.0
-
-    #         self.send_cmd() 
 
 
 if __name__ == '__main__':
