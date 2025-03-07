@@ -236,13 +236,13 @@ if __name__ == '__main__':
         go2_channel = Go2Channel()
 
 
-    sport_client = SportClient() 
-    sport_client.Init()
-    sport_client.SetTimeout(10.0)
-    # sport_client.StandUp()
-    # time.sleep(2.0)
-    sport_client.StandDown()  
-    time.sleep(3.0)  
+    # sport_client = SportClient() 
+    # sport_client.Init()
+    # sport_client.SetTimeout(10.0)
+    # # sport_client.StandUp()
+    # # time.sleep(2.0)
+    # sport_client.StandDown()  
+    # time.sleep(3.0)  
 
     # # 2. Initialize the dog with init state
     go2_leg = Go2Leg()

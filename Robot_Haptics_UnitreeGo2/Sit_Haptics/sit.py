@@ -188,7 +188,7 @@ class Go2Leg:
 
                 if joint_idx < 3:
                     self.cmd.motor_cmd[joint_idx].mode = 0x01
-                    self.cmd.motor_cmd[joint_idx].kp = 5.0 
+                    self.cmd.motor_cmd[joint_idx].kp = 0.0 
                     self.cmd.motor_cmd[joint_idx].kd = 2.0 
                     self.cmd.motor_cmd[joint_idx].tau = 0.0
                 else:
