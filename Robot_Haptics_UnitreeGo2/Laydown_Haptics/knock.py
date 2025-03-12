@@ -134,7 +134,7 @@ class Go2Leg:
                 self.cmd.motor_cmd[i].dq = 0.0 # Set to stop angular velocity(rad/s)
                 self.cmd.motor_cmd[i].kd = 1.0
                 self.cmd.motor_cmd[i].tau = 0.0
-                # time.sleep(0.01)
+                time.sleep(0.1)
                 self.send_cmd()                
             
             print(f"\n")
