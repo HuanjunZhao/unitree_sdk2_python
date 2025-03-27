@@ -205,62 +205,62 @@ class Go2Leg:
                 self.send_cmd() 
             print(f"[INFO] Complete phase 1. \n")  
 
-        # Phase 2 
-        while (_percent_1 >= 1.0) and (_percent_2 < 1.0):
-            _percent_2 += 1.0 / _duration_2
-            _percent_2 = 1.0 if _percent_2 > 1.0 else _percent_2
+        # # Phase 2 
+        # while (_percent_1 >= 1.0) and (_percent_2 < 1.0):
+        #     _percent_2 += 1.0 / _duration_2
+        #     _percent_2 = 1.0 if _percent_2 > 1.0 else _percent_2
 
-            for joint_idx in range(12):
-                target_q = (1.0 - _percent_2) * _targetPos_1[joint_idx] + _percent_2 * _targetPos_2[joint_idx]
-                # print(f"[INFO] Phase 2. target_q[{joint_idx}]: {target_q}")
+        #     for joint_idx in range(12):
+        #         target_q = (1.0 - _percent_2) * _targetPos_1[joint_idx] + _percent_2 * _targetPos_2[joint_idx]
+        #         # print(f"[INFO] Phase 2. target_q[{joint_idx}]: {target_q}")
 
-                self.cmd.motor_cmd[joint_idx].mode = 0x01  # (PMSM) mode
-                self.cmd.motor_cmd[joint_idx].q= target_q
-                self.cmd.motor_cmd[joint_idx].kp = Kp
-                self.cmd.motor_cmd[joint_idx].dq = 0.0   # Set to stop angular velocity(rad/s)
-                self.cmd.motor_cmd[joint_idx].kd = Kd
-                self.cmd.motor_cmd[joint_idx].tau = 0.0
+        #         self.cmd.motor_cmd[joint_idx].mode = 0x01  # (PMSM) mode
+        #         self.cmd.motor_cmd[joint_idx].q= target_q
+        #         self.cmd.motor_cmd[joint_idx].kp = Kp
+        #         self.cmd.motor_cmd[joint_idx].dq = 0.0   # Set to stop angular velocity(rad/s)
+        #         self.cmd.motor_cmd[joint_idx].kd = Kd
+        #         self.cmd.motor_cmd[joint_idx].tau = 0.0
 
-                self.send_cmd()   
-            print(f"[INFO] Complete phase 2. \n")  
+        #         self.send_cmd()   
+        #     print(f"[INFO] Complete phase 2. \n")  
 
-        # Phase 3
-        while (_percent_1 >= 1.0) and (_percent_2 >= 1.0) and (_percent_3 < 1.0):
-            _percent_3 += 1.0 / _duration_3
-            _percent_3 = 1.0 if _percent_3 > 1.0 else _percent_3
+        # # Phase 3
+        # while (_percent_1 >= 1.0) and (_percent_2 >= 1.0) and (_percent_3 < 1.0):
+        #     _percent_3 += 1.0 / _duration_3
+        #     _percent_3 = 1.0 if _percent_3 > 1.0 else _percent_3
 
-            for joint_idx in range(12):
-                # print(f"[INFO] Phase 3. target_q[{joint_idx}]: {_targetPos_2[joint_idx]}")
+        #     for joint_idx in range(12):
+        #         # print(f"[INFO] Phase 3. target_q[{joint_idx}]: {_targetPos_2[joint_idx]}")
 
-                self.cmd.motor_cmd[joint_idx].mode = 0x01  # (PMSM) mode
-                self.cmd.motor_cmd[joint_idx].q= _targetPos_2[joint_idx]
-                self.cmd.motor_cmd[joint_idx].kp = Kp
-                self.cmd.motor_cmd[joint_idx].dq = 0.0   # Set to stop angular velocity(rad/s)
-                self.cmd.motor_cmd[joint_idx].kd = Kd
-                self.cmd.motor_cmd[joint_idx].tau = 0.0
+        #         self.cmd.motor_cmd[joint_idx].mode = 0x01  # (PMSM) mode
+        #         self.cmd.motor_cmd[joint_idx].q= _targetPos_2[joint_idx]
+        #         self.cmd.motor_cmd[joint_idx].kp = Kp
+        #         self.cmd.motor_cmd[joint_idx].dq = 0.0   # Set to stop angular velocity(rad/s)
+        #         self.cmd.motor_cmd[joint_idx].kd = Kd
+        #         self.cmd.motor_cmd[joint_idx].tau = 0.0
 
-                self.send_cmd() 
-            print(f"[INFO] Complete phase 3. \n")  
+        #         self.send_cmd() 
+        #     print(f"[INFO] Complete phase 3. \n")  
 
      
-        # Phase 4
-        while (_percent_1 >= 1.0) and (_percent_2 >= 1.0) and (_percent_3 >= 1.0) and (_percent_4 <= 1.0):
-            _percent_4 += 1.0 / _duration_4
-            _percent_4 = 1.0 if _percent_4 > 1.0 else _percent_4
+        # # Phase 4
+        # while (_percent_1 >= 1.0) and (_percent_2 >= 1.0) and (_percent_3 >= 1.0) and (_percent_4 <= 1.0):
+        #     _percent_4 += 1.0 / _duration_4
+        #     _percent_4 = 1.0 if _percent_4 > 1.0 else _percent_4
 
-            for joint_idx in range(12):
-                target_q = (1.0 - _percent_4) * _targetPos_2[joint_idx] + _percent_4 * _targetPos_3[joint_idx]
-                # print(f"[INFO] Phase 4. target_q[{joint_idx}]: {target_q}")
+        #     for joint_idx in range(12):
+        #         target_q = (1.0 - _percent_4) * _targetPos_2[joint_idx] + _percent_4 * _targetPos_3[joint_idx]
+        #         # print(f"[INFO] Phase 4. target_q[{joint_idx}]: {target_q}")
 
-                self.cmd.motor_cmd[joint_idx].mode = 0x01  # (PMSM) mode
-                self.cmd.motor_cmd[joint_idx].q= target_q
-                self.cmd.motor_cmd[joint_idx].kp = Kp
-                self.cmd.motor_cmd[joint_idx].dq = 0.0   # Set to stop angular velocity(rad/s)
-                self.cmd.motor_cmd[joint_idx].kd = Kd
-                self.cmd.motor_cmd[joint_idx].tau = 0.0
+        #         self.cmd.motor_cmd[joint_idx].mode = 0x01  # (PMSM) mode
+        #         self.cmd.motor_cmd[joint_idx].q= target_q
+        #         self.cmd.motor_cmd[joint_idx].kp = Kp
+        #         self.cmd.motor_cmd[joint_idx].dq = 0.0   # Set to stop angular velocity(rad/s)
+        #         self.cmd.motor_cmd[joint_idx].kd = Kd
+        #         self.cmd.motor_cmd[joint_idx].tau = 0.0
 
-                self.send_cmd()             
-            print(f"[INFO] Complete phase 4. \n")  
+        #         self.send_cmd()             
+        #     print(f"[INFO] Complete phase 4. \n")  
         return 0
     
 
@@ -290,5 +290,5 @@ if __name__ == '__main__':
     # 6. Stand up demo
     go2_leg.stand_up()
 
-    print(f"[INFO] The standing-up demo will complete in 10 seconds.")
-    time.sleep(10.0)
+    print(f"[INFO] The laydown demo will complete in 2 seconds.")
+    time.sleep(2.0)
