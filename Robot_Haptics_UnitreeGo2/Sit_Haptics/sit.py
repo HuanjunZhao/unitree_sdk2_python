@@ -1,75 +1,4 @@
-# import time
-# import sys
-# from unitree_sdk2py.core.channel import ChannelSubscriber, ChannelFactoryInitialize
-# from unitree_sdk2py.idl.default import unitree_go_msg_dds__SportModeState_
-# from unitree_sdk2py.idl.unitree_go.msg.dds_ import SportModeState_
-# from unitree_sdk2py.go2.sport.sport_client import (
-#     SportClient,
-#     PathPoint,
-#     SPORT_PATH_POINT_SIZE,
-# )
-
-# import unitree_legged_const as go2
-
-# class Go2:
-#     def __init__(self):
-#         self.channel = None
-#         self.cmd = unitree_go_msg_dds__LowCmd_()
-
-# class Go2Channel:
-#     def __init__(self, ether_name: str=""):
-#         self.pub = None
-#         self.sub = None
-#         self.low_state = None
-#         self.duration_readyState = 500
-#         self.duration_waveLeg = 1000
-#         self.percent_1 = 0
-#         self.percent_2 = 0
-
-
-#         if len(ether_name)>1:
-#             ChannelFactoryInitialize(0, ether_name)
-#         else:
-#             ChannelFactoryInitialize(0)
-
-#         # Create a publisher to publish the data defined in UserData class
-#         self.pub = ChannelPublisher("rt/lowcmd", LowCmd_)
-#         self.pub.Init()
-
-#         # Create a subscriber to receive the latest robot state every certain seconds 
-#         self.low_state = None
-#         self.sub = ChannelSubscriber("rt/lowstate", LowState_)
-#         self.sub.Init(self.LowStateMessageHandler, 10)      
-
-
-# if __name__ == "__main__":
-
-#     if len(sys.argv) < 2:
-#         print(f"Usage: python3 {sys.argv[0]} networkInterface")
-#         sys.exit(-1)
-    
-#     if len(sys.argv)>1:
-#         go2_channel = Go2Channel(sys.argv[1])
-#     else:
-#         go2_channel = Go2Channel()
-
-#     ChannelFactoryInitialize(0, sys.argv[1])
-
-#     sport_client = SportClient()  
-#     sport_client.SetTimeout(10.0)
-#     sport_client.Init()
-
-#     sport_client.Sit()
-
-
-#     go2_leg = Go2()
-#     go2_leg.go2_channel = go2_channel
-#     go2_leg.init_state()
-
-#     time.sleep(5)
-#     # sport_client.RiseSit()
-#     # sport_client.StandUp()
-#     # time.sleep(2)
+# This script is used to make the robot sit down (from lay down pos).
 
 import time
 import sys
@@ -120,13 +49,16 @@ class Go2Leg:
         self.cmd = unitree_go_msg_dds__LowCmd_()
         self._startPos = [0.0] * 12
 
-        # 站立姿势
-        self._standPos = [0, 0.80, -1.50, -0.03, 0.80, -1.50, 
-                          0.045063, 0.718109, -1.550600, -0.036850, 0.722423, -1.539088]
+        # # 站立姿势
+        # self._standPos = [0, 0.80, -1.50, -0.03, 0.80, -1.50, 
+        #                   0.045063, 0.718109, -1.550600, -0.036850, 0.722423, -1.539088]
         
         # 坐下姿势
         self._sitPos = [0.027953, 1.396641, -1.059938, -0.048694, 1.459891, -1.076525, 
                         -0.012320, 2.025182, -2.797226, 0.024008, 2.036127, -2.832129]
+
+        # self._sitPos = [0.027953, 1.396641, -1.059938, -0.048694, 1.459891, -1.076525, 
+                        # -0.012320, 2.2, -2.797226, 0.024008, 2.2, -2.832129]
 
     @property
     def go2_channel(self):
@@ -166,7 +98,7 @@ class Go2Leg:
     def sit_down(self):
         Kp = 60.0
         Kd = 5.0
-        duration = 500  # 过渡时间
+        duration = 300  # 过渡时间
         percent = 0.0
 
         while percent < 1.0:
@@ -188,8 +120,8 @@ class Go2Leg:
 
                 if joint_idx < 3:
                     self.cmd.motor_cmd[joint_idx].mode = 0x01
-                    self.cmd.motor_cmd[joint_idx].kp = 0.0 
-                    self.cmd.motor_cmd[joint_idx].kd = 2.0 
+                    self.cmd.motor_cmd[joint_idx].kp = 60.0 
+                    self.cmd.motor_cmd[joint_idx].kd = 5.0 
                     self.cmd.motor_cmd[joint_idx].tau = 0.0
                 else:
                     self.cmd.motor_cmd[joint_idx].mode = 0x01
