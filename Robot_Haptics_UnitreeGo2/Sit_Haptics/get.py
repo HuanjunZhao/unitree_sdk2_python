@@ -144,8 +144,8 @@ if __name__ == '__main__':
     time.sleep(2.0)
     # go2_leg.joint_relax()
     # time.sleep(2.0)
-    go2_leg.joint_relax()
-    time.sleep(10.0)
+    # go2_leg.joint_relax()
+    # time.sleep(10.0)
     while True:
         # go2_leg.joint_relax()
         go2_leg.getJointPos()

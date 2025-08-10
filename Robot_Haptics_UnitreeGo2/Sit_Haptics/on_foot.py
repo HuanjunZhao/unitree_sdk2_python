@@ -60,14 +60,6 @@ class Go2Leg:
         self._sitonFootPos = [0.027953, 1.396641, -1.059938, -0.048694, 1.459891, -1.076525, 
             -0.003666  ,  2.79740024, -2.83746076,  0.0114518, 2.83350126, -2.89407706]
         
-        # # Sitting pos (middle sit by unitree, pos)
-        # self._sitPos = [0.027953, 1.396641, -1.059938, -0.048694, 1.459891, -1.076525, 
-        #                 -0.012320, 2.025182, -2.797226, 0.024008, 2.036127, -2.832129]
-
-        # Sitting pos (highest possible sit by huann, pos)
-        # self._sitPos = [-0.01908225,  1.63219508, -1.26739434,  0.03126392,  1.63544504,
-        #                 -1.32681207, -0.11140353,  2.01383797, -2.83593893,  0.13425752,
-        #                 2.05665048, -2.89283442]
         self._sitPos = [0,  1.65, -1.3,  0,  1.65,
                         -1.32681207, -0.11140353,  2.01383797, -2.83593893,  0.13425752,
                         2.05665048, -2.89283442]
@@ -147,6 +139,19 @@ class Go2Leg:
             # print(f"[INFO] Joint 'FR_1' pos: {go2_leg.channel.low_state.motor_state[1].q}") 
             # print(f"[INFO] Joint 'FR_1' pos: {go2_leg.channel.low_state.motor_state[4].q}") 
 
+    def lock_rear_joints(self):            
+        for joint_idx in range(12):
+            if joint_idx < 3:
+                self.cmd.motor_cmd[joint_idx].mode = 0x01
+                self.cmd.motor_cmd[joint_idx].kp = 0.0 
+                self.cmd.motor_cmd[joint_idx].kd = 0.0 
+                self.cmd.motor_cmd[joint_idx].tau = 0.0
+            else:
+                self.cmd.motor_cmd[joint_idx].mode = 0x01
+                self.cmd.motor_cmd[joint_idx].kp = 60.0 
+                self.cmd.motor_cmd[joint_idx].kd = 5.0 
+                self.cmd.motor_cmd[joint_idx].tau = 0.0  
+                self.send_cmd()
 
     def sit_on_foot(self):
         Kp = 60.0
@@ -168,7 +173,55 @@ class Go2Leg:
                 self.send_cmd()
         print("[INFO] Sitting motion complete.")
 
+        # Manual stable the edu
         while True:
+            # percent = percent + 1.0   
+            for joint_idx in range(12):
+
+                if joint_idx < 3:
+                    self.cmd.motor_cmd[joint_idx].mode = 0x01
+                    self.cmd.motor_cmd[joint_idx].kp = 60.0 
+                    self.cmd.motor_cmd[joint_idx].kd = 5.0 
+                    self.cmd.motor_cmd[joint_idx].tau = 0.0
+                else:
+                    self.cmd.motor_cmd[joint_idx].mode = 0x01
+                    # self.cmd.motor_cmd[joint_idx].q = self.channel.low_state.motor_state[joint_idx].q
+                    self.cmd.motor_cmd[joint_idx].kp = 60.0 
+                    self.cmd.motor_cmd[joint_idx].kd = 5.0 
+                    self.cmd.motor_cmd[joint_idx].tau = 0.0  
+                    self.send_cmd() 
+            # while percent < 1000.0:
+            # percent = percent + 1.0   
+            # for joint_idx in range(12):
+
+            #     if joint_idx < 3:
+            #         self.cmd.motor_cmd[joint_idx].mode = 0x01
+            #         self.cmd.motor_cmd[joint_idx].kp = 60.0 
+            #         self.cmd.motor_cmd[joint_idx].kd = 5.0 
+            #         self.cmd.motor_cmd[joint_idx].tau = 0.0
+            #     else:
+            #         self.cmd.motor_cmd[joint_idx].mode = 0x01
+            #         # self.cmd.motor_cmd[joint_idx].q = self.channel.low_state.motor_state[joint_idx].q
+            #         self.cmd.motor_cmd[joint_idx].kp = 60.0 
+            #         self.cmd.motor_cmd[joint_idx].kd = 5.0 
+            #         self.cmd.motor_cmd[joint_idx].tau = 0.0  
+            #         self.send_cmd()
+
+    def Knock(self):
+        q_init = [0.0, -1.5, -2.8]
+        q_des =  [0.0, 0.0, 0.0]
+        
+        # sim_mid_q = [0.0, -1.5, -1] # light
+        sim_mid_q = [0.0, -1.5, 0] # normal
+        # sim_mid_q = [0.0, -1.5, 1] # smash
+        moter_kp = 60.0
+        for rate_count in range(10, 800):
+            rate = float(rate_count) / 200.0
+
+            for joint_idx in range(3):
+                q_des[joint_idx] = self.joint_linear_interpolation(q_init[joint_idx], sim_mid_q[joint_idx], rate)
+
+
             for joint_idx in range(12):
 
                 if joint_idx < 3:
@@ -183,7 +236,31 @@ class Go2Leg:
                     self.cmd.motor_cmd[joint_idx].kd = 5.0 
                     self.cmd.motor_cmd[joint_idx].tau = 0.0  
                     self.send_cmd()
-    
+            
+            # for joint_idx in range(3):
+            #     joint_offset = go2.LegID["FR_0"]
+            #     i = joint_offset + joint_idx
+            #     # print("FR_0 motor state: ", self.channel.low_state.motor_state[go2.LegID["FR_0"]])
+            #     # print("FR_0 motor state: ", go2.LegID["FR_0"])
+            #     self.cmd.motor_cmd[i].mode = 0x01  # (PMSM) mode
+            #     self.cmd.motor_cmd[i].q= q_des[joint_idx]
+            #     self.cmd.motor_cmd[i].kp = moter_kp
+            #     self.cmd.motor_cmd[i].dq = 0.0 # Set to stop angular velocity(rad/s)
+            #     self.cmd.motor_cmd[i].kd = 1.0
+            #     self.cmd.motor_cmd[i].tau = 0.0
+            #     time.sleep(0.01)
+            #     self.send_cmd()                
+            
+        self.cmd.motor_cmd[go2.LegID["FR_0"]].tau = 5.0
+        self.send_cmd()
+        # FR_0 = go2.LegID["FR_0"]
+        # print(f"\n[INFO] Joint 'FR_0' pos: {self.channel.low_state.motor_state[FR_0].q}")
+        # FR_1 = go2.LegID["FR_1"]
+        # print(f"\n[INFO] Joint 'FR_1' pos: {self.channel.low_state.motor_state[FR_1].q}")
+        # FR_2 = go2.LegID["FR_2"]
+        # print(f"\n[INFO] Joint 'FR_2' pos: {self.channel.low_state.motor_state[FR_2].q} \n")                     
+
+
 if __name__ == '__main__':
     if len(sys.argv)>1:
         go2_channel = Go2Channel(sys.argv[1])
@@ -198,11 +275,11 @@ if __name__ == '__main__':
     go2_leg.ready_state()
     print("[INFO] The robot is ready to sit down and prepare for on foot.")
     time.sleep(2.0)
-    go2_leg.sit_down()
-    go2_leg.ready_state()
-    print("[INFO] The robot is ready to sit on foot.")
-    # time.sleep(2.0)
-    # go2_leg.sit_on_foot()
-    # time.sleep(2.0)
+    # go2_leg.sit_down()
+    # go2_leg.ready_state()
+    # print("[INFO] The robot is ready to sit on foot.")
+    time.sleep(2.0)
+    go2_leg.sit_on_foot()
+    time.sleep(2.0)
 
-    # print("[INFO] The sitting on foot is complete.")
+    print("[INFO] The sitting on foot is complete.")

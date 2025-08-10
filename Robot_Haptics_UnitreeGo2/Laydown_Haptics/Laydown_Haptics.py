@@ -194,7 +194,7 @@ class Go2Leg:
         q_des =  [0.0, 0.0, 0.0]
         
         # sim_mid_q = [0.0, -1.5, -1.1] # light
-        # sim_mid_q = [0.0, -1.5, 0] # normal
+        sim_mid_q = [0.0, -1.5, 0] # normal
         # sim_mid_q = [0.0, -1.5, 1] # smash
         moter_kp = 20.0
         for rate_count in range(10, 400):
@@ -214,7 +214,7 @@ class Go2Leg:
                 self.cmd.motor_cmd[i].dq = 0.0 # Set to stop angular velocity(rad/s)
                 self.cmd.motor_cmd[i].kd = 1.0
                 self.cmd.motor_cmd[i].tau = 0.0
-
+                time.sleep(0.1)
                 self.send_cmd()                
             
         self.cmd.motor_cmd[go2.LegID["FR_0"]].tau = 5.0
