@@ -106,97 +106,17 @@ class Go2Leg:
         p = init_pos * (1.0 - rate) + target_pos * rate
         return p
 
-    def ready_state(self):
-        q_init = [0.0, 0.0, 0.0]
-        q_des =  [0.0, 0.0, 0.0]
-        
-        sim_mid_q = [-0.8, -1.4, -2.7]
-        # sim_mid_q = [0.0, 0.0, 0.0]
-        # print("FR_0 motor state: ", self.cmd.motor_cmd[0].q)     
-        # print("FR_1 motor state: ", self.cmd.motor_cmd[1].q)  
-        # print("FR_2 motor state: ", self.cmd.motor_cmd[2].q)  
-        # print("FR_0 motor state: ", self.channel.low_state.motor_state[go2.LegID["FR_0"]], "\n")
-        # print("FR_1 motor state: ", self.channel.low_state.motor_state[go2.LegID["FR_1"]], "\n")
-        # print("FR_2 motor state: ", self.channel.low_state.motor_state[go2.LegID["FR_2"]], "\n")
-        # print(f"\n")
-
-        # time.sleep(2.0)
-
-        for rate_count in range(10, 400):
-            rate = float(rate_count) / 200.0
-
-            for joint_idx in range(3):
-                q_des[joint_idx] = self.joint_linear_interpolation(q_init[joint_idx], sim_mid_q[joint_idx], rate)
-            
-            for joint_idx in range(3):
-                joint_offset = go2.LegID["FR_0"]
-                i = joint_offset + joint_idx
-                # print("FR_0 motor state: ", self.channel.low_state.motor_state[go2.LegID["FR_0"]])
-                # print("FR_0 motor state: ", go2.LegID["FR_0"])
-                self.cmd.motor_cmd[i].mode = 0x01  # (PMSM) mode
-                self.cmd.motor_cmd[i].q= q_des[joint_idx]
-                self.cmd.motor_cmd[i].kp = 20.0
-                self.cmd.motor_cmd[i].dq = 0.0 # Set to stop angular velocity(rad/s)
-                self.cmd.motor_cmd[i].kd = 1.0
-                self.cmd.motor_cmd[i].tau = 0.0
-                time.sleep(0.1)
-                self.send_cmd()                
-            
-            # print(f"\n")
-        self.cmd.motor_cmd[go2.LegID["FR_0"]].kp = 60.0
-        self.send_cmd()
-        # FR_0 = go2.LegID["FR_0"]
-        # print(f"\n[INFO] Joint 'FR_0' pos: {self.channel.low_state.motor_state[FR_0].q}")
-        # FR_1 = go2.LegID["FR_1"]
-        # print(f"\n[INFO] Joint 'FR_1' pos: {self.channel.low_state.motor_state[FR_1].q}")
-        # FR_2 = go2.LegID["FR_2"]
-        # print(f"\n[INFO] Joint 'FR_2' pos: {self.channel.low_state.motor_state[FR_2].q} \n")                     
+                  
 
 
-    # def Knock(self):
-    #     q_init = [0.0, -1.5, -2.8]
-    #     q_des =  [0.0, 0.0, 0.0]
-        
-    #     # sim_mid_q = [0.0, -1.5, -1.1]
-    #     sim_mid_q = [0.0, -1.5, 0] # normal
-
-    #     for rate_count in range(10, 400):
-    #         rate = float(rate_count) / 200.0
-
-    #         for joint_idx in range(3):
-    #             q_des[joint_idx] = self.joint_linear_interpolation(q_init[joint_idx], sim_mid_q[joint_idx], rate)
-            
-    #         for joint_idx in range(3):
-    #             joint_offset = go2.LegID["FR_0"]
-    #             i = joint_offset + joint_idx
-    #             # print("FR_0 motor state: ", self.channel.low_state.motor_state[go2.LegID["FR_0"]])
-    #             # print("FR_0 motor state: ", go2.LegID["FR_0"])
-    #             self.cmd.motor_cmd[i].mode = 0x01  # (PMSM) mode
-    #             self.cmd.motor_cmd[i].q= q_des[joint_idx]
-    #             self.cmd.motor_cmd[i].kp = 20.0
-    #             self.cmd.motor_cmd[i].dq = 0.0 # Set to stop angular velocity(rad/s)
-    #             self.cmd.motor_cmd[i].kd = 1.0
-    #             self.cmd.motor_cmd[i].tau = 0.0
-
-    #             self.send_cmd()                
-            
-    #         print(f"\n")
-    #     # self.cmd.motor_cmd[go2.LegID["FR_0"]].tau = 5.0
-    #     self.send_cmd()
-    #     FR_0 = go2.LegID["FR_0"]
-    #     print(f"\n[INFO] Joint 'FR_0' pos: {self.channel.low_state.motor_state[FR_0].q}")
-    #     FR_1 = go2.LegID["FR_1"]
-    #     print(f"\n[INFO] Joint 'FR_1' pos: {self.channel.low_state.motor_state[FR_1].q}")
-    #     FR_2 = go2.LegID["FR_2"]
-    #     print(f"\n[INFO] Joint 'FR_2' pos: {self.channel.low_state.motor_state[FR_2].q} \n")                     
     def Knock(self):
         q_init = [0.0, -1.5, -2.8]
         q_des =  [0.0, 0.0, 0.0]
         
-        # sim_mid_q = [0.0, -1.5, -1.1] # light
+        # sim_mid_q = [0.0, -1.5, -1] # light
         sim_mid_q = [0.0, -1.5, 0] # normal
         # sim_mid_q = [0.0, -1.5, 1] # smash
-        moter_kp = 20.0
+        moter_kp = 60.0
         for rate_count in range(10, 400):
             rate = float(rate_count) / 200.0
 
@@ -214,7 +134,7 @@ class Go2Leg:
                 self.cmd.motor_cmd[i].dq = 0.0 # Set to stop angular velocity(rad/s)
                 self.cmd.motor_cmd[i].kd = 1.0
                 self.cmd.motor_cmd[i].tau = 0.0
-                time.sleep(0.1)
+                time.sleep(0.03)
                 self.send_cmd()                
             
         self.cmd.motor_cmd[go2.LegID["FR_0"]].tau = 5.0
@@ -225,8 +145,7 @@ class Go2Leg:
         print(f"\n[INFO] Joint 'FR_1' pos: {self.channel.low_state.motor_state[FR_1].q}")
         FR_2 = go2.LegID["FR_2"]
         print(f"\n[INFO] Joint 'FR_2' pos: {self.channel.low_state.motor_state[FR_2].q} \n")                     
-
-
+  
 if __name__ == '__main__':
 
     # 1. Create comm channel
@@ -236,38 +155,11 @@ if __name__ == '__main__':
         go2_channel = Go2Channel()
 
 
-    # sport_client = SportClient() 
-    # sport_client.Init()
-    # sport_client.SetTimeout(10.0)
-    # # sport_client.StandUp()
-    # # time.sleep(2.0)
-    # sport_client.StandDown()  
-    # time.sleep(3.0)  
-
-    # # 2. Initialize the dog with init state
     go2_leg = Go2Leg()
     go2_leg.go2_channel = go2_channel
     go2_leg.init_state()
     time.sleep(2.0)
 
-    # 3. Move the leg to the ready-to-start state
-    # while True:
-        # go2_leg.ready_state()
-        # time.sleep(2.0)
-
-    go2_leg.ready_state()
-    time.sleep(5.0)
-
-    # 4. Wave the front right leg in sine pattern
     go2_leg.Knock()
 
-    # print(f"[INFO] The front right leg waving demo will complete in 10 seconds.")
     time.sleep(2.0)
-
-    # sport_client = SportClient() 
-    # sport_client.Init()
-    # sport_client.SetTimeout(10.0)
-    # sport_client.StandUp()
-    # time.sleep(2.0)
-    # sport_client.StandDown()  
-    # time.sleep(3.0)
