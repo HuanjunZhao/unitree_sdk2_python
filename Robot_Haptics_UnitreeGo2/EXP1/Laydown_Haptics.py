@@ -139,7 +139,7 @@ class Go2Leg:
                 self.cmd.motor_cmd[i].dq = 0.0 # Set to stop angular velocity(rad/s)
                 self.cmd.motor_cmd[i].kd = 1.0
                 self.cmd.motor_cmd[i].tau = 0.0
-
+                time.sleep(0.1)
                 self.send_cmd()                
             
             # print(f"\n")
@@ -256,10 +256,18 @@ if __name__ == '__main__':
         # time.sleep(2.0)
 
     go2_leg.ready_state()
-    time.sleep(2.0)
+    time.sleep(5.0)
 
     # 4. Wave the front right leg in sine pattern
     go2_leg.Knock()
 
     # print(f"[INFO] The front right leg waving demo will complete in 10 seconds.")
     time.sleep(2.0)
+
+    # sport_client = SportClient() 
+    # sport_client.Init()
+    # sport_client.SetTimeout(10.0)
+    # sport_client.StandUp()
+    # time.sleep(2.0)
+    # sport_client.StandDown()  
+    # time.sleep(3.0)

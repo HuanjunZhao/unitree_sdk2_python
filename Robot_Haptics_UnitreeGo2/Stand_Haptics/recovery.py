@@ -70,11 +70,11 @@ class Go2Channel:
             temperature: types.uint8
         """
 
-        print(f"\n\n[INFO] Read sensor data example: ")
-        print(f"\tJoint 0 pos: {self.low_state.motor_state[0].q}")
-        print(f"\tImu accelerometer: {self.low_state.imu_state}")
-        print(f"\tFoot force: {self.low_state.foot_force}")
-        print(f"\tThe example is done! \n\n")
+        # print(f"\n\n[INFO] Read sensor data example: ")
+        # print(f"\tJoint 0 pos: {self.low_state.motor_state[0].q}")
+        # print(f"\tImu accelerometer: {self.low_state.imu_state}")
+        # print(f"\tFoot force: {self.low_state.foot_force}")
+        # print(f"\tThe example is done! \n\n")
 
     def ReadMotorPosition(self, joint_idx :int=0):
         q = self.low_state.motor_state[joint_idx].q
@@ -203,7 +203,7 @@ class Go2Leg:
                 self.cmd.motor_cmd[joint_idx].tau = 0.0
 
                 self.send_cmd() 
-            print(f"[INFO] Complete phase 1. \n")  
+            # print(f"[INFO] Complete phase 1. \n")  
 
         # # Phase 2 
         # while (_percent_1 >= 1.0) and (_percent_2 < 1.0):
@@ -289,6 +289,6 @@ if __name__ == '__main__':
 
     # 6. Stand up demo
     go2_leg.stand_up()
-
-    print(f"[INFO] The laydown demo will complete in 2 seconds.")
-    time.sleep(2.0)
+    print(f"\tThe example is done! \n\n")
+    # print(f"[INFO] The laydown demo will complete in 2 seconds.")
+    # time.sleep(2.0)
