@@ -93,25 +93,24 @@ class Go2Leg:
     def joint_relax(self):    
         for joint_idx in range(12):
             self.cmd.motor_cmd[joint_idx].mode = 0x01
-            # self.cmd.motor_cmd[joint_idx].q = self.channel.low_state.motor_state[joint_idx].q
             self.cmd.motor_cmd[joint_idx].kp = 0.0 
             self.cmd.motor_cmd[joint_idx].kd = 0.0 
             self.cmd.motor_cmd[joint_idx].tau = 0.0  
             self.send_cmd()
 
-    def joint_lock(self):    
-        for joint_idx in range(12):
-            self.cmd.motor_cmd[joint_idx].mode = 0x01
-            # self.cmd.motor_cmd[joint_idx].q = self.channel.low_state.motor_state[joint_idx].q
-            self.cmd.motor_cmd[joint_idx].kp = 1.0 
-            self.cmd.motor_cmd[joint_idx].kd = 0.0 
-            self.cmd.motor_cmd[joint_idx].tau = 0.0  
-            self.send_cmd()
+    # def joint_lock(self):    
+    #     for joint_idx in range(12):
+    #         self.cmd.motor_cmd[joint_idx].mode = 0x01
+    #         # self.cmd.motor_cmd[joint_idx].q = self.channel.low_state.motor_state[joint_idx].q
+    #         self.cmd.motor_cmd[joint_idx].kp = 0.0 
+    #         self.cmd.motor_cmd[joint_idx].kd = 0.0 
+    #         self.cmd.motor_cmd[joint_idx].tau = 0.0  
+    #         self.send_cmd()
 
     def getJointPos(self):
-        print(f"[INFO] Joint 'FR_0' pos: {go2_leg.channel.low_state.motor_state[0].q}")        
-        print(f"[INFO] Joint 'FR_1' pos: {go2_leg.channel.low_state.motor_state[1].q}")        
-        print(f"[INFO] Joint 'FR_2' pos: {go2_leg.channel.low_state.motor_state[2].q}")  
+        # print(f"[INFO] Joint 'FR_0' pos: {go2_leg.channel.low_state.motor_state[0].q}")        
+        # print(f"[INFO] Joint 'FR_1' pos: {go2_leg.channel.low_state.motor_state[1].q}")        
+        # print(f"[INFO] Joint 'FR_2' pos: {go2_leg.channel.low_state.motor_state[2].q}")  
 
         # print(f"[INFO] Joint 'FL_0' pos: {go2_leg.channel.low_state.motor_state[3].q}")        
         # print(f"[INFO] Joint 'FL_1' pos: {go2_leg.channel.low_state.motor_state[4].q}")        
@@ -125,7 +124,8 @@ class Go2Leg:
         # print(f"[INFO] Joint 'RL_1' pos: {go2_leg.channel.low_state.motor_state[10].q}")        
         # print(f"[INFO] Joint 'RL_2' pos: {go2_leg.channel.low_state.motor_state[11].q}\n\n") 
 
-        time.sleep(2.0)                   
+        print(f"pos: {go2_leg.channel.low_state.motor_state[0].q, go2_leg.channel.low_state.motor_state[1].q, go2_leg.channel.low_state.motor_state[2].q,}")        
+        time.sleep(5.0)                   
         return 0
     
 if __name__ == '__main__':
@@ -141,7 +141,7 @@ if __name__ == '__main__':
 
     go2_leg.ready_state()
 
-    # go2_leg.joint_relax()
+    go2_leg.joint_relax()
     # time.sleep(2.0)
     # go2_leg.joint_relax()
     # time.sleep(10.0)
