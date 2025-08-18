@@ -9,13 +9,6 @@ from unitree_sdk2py.idl.unitree_go.msg.dds_ import LowCmd_
 from unitree_sdk2py.idl.unitree_go.msg.dds_ import LowState_
 from unitree_sdk2py.utils.crc import CRC
 from unitree_sdk2py.utils.thread import Thread
-from unitree_sdk2py.idl.default import unitree_go_msg_dds__SportModeState_
-from unitree_sdk2py.idl.unitree_go.msg.dds_ import SportModeState_
-from unitree_sdk2py.go2.sport.sport_client import (
-    SportClient,
-    PathPoint,
-    SPORT_PATH_POINT_SIZE,
-)
 import unitree_legged_const as go2
 
 crc = CRC()
@@ -25,11 +18,6 @@ class Go2Channel:
         self.pub = None
         self.sub = None
         self.low_state = None
-        self.duration_readyState = 500
-        self.duration_waveLeg = 1000
-        self.percent_1 = 0
-        self.percent_2 = 0
-
 
         if len(ether_name)>1:
             ChannelFactoryInitialize(0, ether_name)
@@ -45,23 +33,40 @@ class Go2Channel:
         self.sub = ChannelSubscriber("rt/lowstate", LowState_)
         self.sub.Init(self.LowStateMessageHandler, 10)      
 
-    # Not used, but usable.
-    def LowStateHandler(self, msg: LowState_):    
-        # print front right hip motor states
-        print("FR_0 motor state: ", msg.motor_state[go2.LegID["FR_0"]])
-        print("RL_2 motor state: ", msg.motor_state[go2.LegID["RL_2"]])
-        print("RL_0 motor state: ", msg.motor_state[go2.LegID["RL_0"]])
-        print("IMU state: ", msg.imu_state)
-        print("Battery state: voltage: ", msg.power_v, "current: ", msg.power_a)
-        print(f"\n")  
-
     def LowStateMessageHandler(self, msg: LowState_):
         self.low_state = msg
+
+    def ReadMotorPosition(self, joint_idx :int=0):
+        q = self.low_state.motor_state[joint_idx].q
+        return q
+    
 
 class Go2Leg:
     def __init__(self):
         self.channel = None
         self.cmd = unitree_go_msg_dds__LowCmd_()
+        self._startPos = [0.0] * 12
+
+        # Standing pos (need verification) 
+        self._standPos = [0, 0.80, -1.50, -0.03, 0.80, -1.50, 
+                          0.045063, 0.718109, -1.550600, -0.036850, 0.722423, -1.539088]
+        # lay down pos
+        # self._layPos = [0, 1.3, -1.30, -0.03, 0.80, -1.50,
+        
+        # Sitting on foot pos 
+        # self._sitonFootPos = [-0.07042285,  1.56507985, -2.84921885, -0.1115451, 1.44777473, -2.82264304, 
+        #     -0.003666  ,  2.79740024, -2.83746076,  0.0114518, 2.83350126, -2.89407706]
+        # Sitting on foot pos (verified)
+        self._sitonFootPos = [0.027953, 1.396641, -1.059938, -0.048694, 1.459891, -1.076525, 
+            -0.003666  ,  2.79740024, -2.83746076,  0.0114518, 2.83350126, -2.89407706]
+        
+        # self._sitPos = [0,  1.65, -1.3,  0,  1.65,
+        #                 -1.32681207, -0.11140353,  2.01383797, -2.83593893,  0.13425752,
+        #                 2.05665048, -2.89283442]
+        self._endingPos = [0.0, 0.0, -0.9, -0.048694, 1.459891, -1.076525, 
+            -0.003666  ,  2.79740024, -2.83746076,  0.0114518, 2.83350126, -2.89407706]
+        self._tmpPos = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+
 
     @property
     def go2_channel(self):
@@ -71,25 +76,20 @@ class Go2Leg:
     def go2_channel(self, channel: Go2Channel):
         self.channel = channel
 
-
-    def send_cmd(self):
-        self.cmd.crc = crc.Crc(self.cmd)
-
-        #Publish message
-        if self.channel.pub.Write(self.cmd):
-            # print(f"Publish success. msg crc: {self.cmd.crc} \n")
-            pass
-        else:
-            print(f"Waitting for subscriber. \n")
-
-    
-    def init_state(self):
+    def init_cmd(self):
         self.cmd = unitree_go_msg_dds__LowCmd_()
         self.cmd.head[0]=0xFE
         self.cmd.head[1]=0xEF
-        self.cmd.level_flag = 0xEE
+        self.cmd.level_flag = 0xFF
         self.cmd.gpio = 0
+        return self.cmd
 
+    def send_cmd(self):
+        self.cmd.crc = crc.Crc(self.cmd)
+        self.channel.pub.Write(self.cmd)
+    
+    def init_state(self):
+        self.cmd = self.init_cmd()
         for i in range(20):
             self.cmd.motor_cmd[i].mode = 0x01  # (PMSM) mode
             self.cmd.motor_cmd[i].q= go2.PosStopF
@@ -97,69 +97,164 @@ class Go2Leg:
             self.cmd.motor_cmd[i].dq = go2.VelStopF
             self.cmd.motor_cmd[i].kd = 0
             self.cmd.motor_cmd[i].tau = 0
-
         self.send_cmd()
 
-    def joint_linear_interpolation(self, init_pos: float, target_pos: float, rate: float):
-        p = 0.0
-        rate = min(max(rate, 0.0), 1.0)
-        p = init_pos * (1.0 - rate) + target_pos * rate
-        return p
+    def ready_state(self):
+        for joint_idx in range(12):
+            self._startPos[joint_idx] = self.go2_channel.ReadMotorPosition(joint_idx)
 
-                  
+    def _move_fr_to(self, q_target, t_move=1.2, hz=200, kp=55.0, kd=4.0, lock_kp=60.0, lock_kd=5.0):
+        """
+        Smoothly move FR joints (0,1,2) to q_target = [q0,q1,q2].
+        While moving, keep all other joints locked at their captured angles.
+        """
+        # start from current FR
+        q_now = [self.go2_channel.ReadMotorPosition(0),
+                 self.go2_channel.ReadMotorPosition(1),
+                 self.go2_channel.ReadMotorPosition(2)]
 
+        n = max(1, int(t_move * hz))
+        for step in range(1, n + 1):
+            alpha = step / float(n)
+            q_cmd = [q_now[k]*(1.0 - alpha) + q_target[k]*alpha for k in range(3)]
 
-    def Knock(self):
-        q_init = [0.0, -1.5, -2.8]
-        q_des =  [0.0, 0.0, 0.0]
+            # command FR joints
+            for j in range(3):
+                i = j  # FR indices are 0,1,2
+                self.cmd.motor_cmd[i].mode = 0x01
+                self.cmd.motor_cmd[i].q    = q_cmd[j]
+                self.cmd.motor_cmd[i].kp   = kp
+                self.cmd.motor_cmd[i].kd   = kd
+                self.cmd.motor_cmd[i].dq   = 0.0
+                self.cmd.motor_cmd[i].tau  = 0.0
+
+            # send once per cycle
+            self.send_cmd()
+            time.sleep(1.0 / hz)
+
+        # small hold at the end to settle
+        for _ in range(int(0.3 * hz)):
+            for j in range(3):
+                i = j
+                self.cmd.motor_cmd[i].mode = 0x01
+                self.cmd.motor_cmd[i].q    = q_target[j]
+                self.cmd.motor_cmd[i].kp   = kp
+                self.cmd.motor_cmd[i].kd   = kd
+                self.cmd.motor_cmd[i].dq   = 0.0
+                self.cmd.motor_cmd[i].tau  = 0.0
+            self.send_cmd()
+            time.sleep(1.0 / hz)
+
+    def _move_fl_to(self, q_target, t_move=1.2, hz=200, kp=55.0, kd=4.0, lock_kp=60.0, lock_kd=5.0):
+        """
+        Smoothly move FL joints (3,4,5) to q_target = [q3,q4,q5].
+        While moving, keep all other joints locked at their captured angles.
+        """
+        # start from current FL
+        q_now = [self.go2_channel.ReadMotorPosition(3),
+                 self.go2_channel.ReadMotorPosition(4),
+                 self.go2_channel.ReadMotorPosition(5)]
+
+        n = max(1, int(t_move * hz))
+        for step in range(1, n + 1):
+            alpha = step / float(n)
+            q_cmd = [q_now[k]*(1.0 - alpha) + q_target[k]*alpha for k in range(3)]
+
+            # command FL joints
+            for j in range(3):
+                i = j + 3  # FL indices are 3,4,5
+                self.cmd.motor_cmd[i].mode = 0x01
+                self.cmd.motor_cmd[i].q    = q_cmd[j]
+                self.cmd.motor_cmd[i].kp   = kp
+                self.cmd.motor_cmd[i].kd   = kd
+                self.cmd.motor_cmd[i].dq   = 0.0
+                self.cmd.motor_cmd[i].tau  = 0.0
+
+            # send once per cycle
+            self.send_cmd()
+            time.sleep(1.0 / hz)
+
+        # small hold at the end to settle
+        for _ in range(int(0.3 * hz)):
+            for j in range(3):
+                i = j + 3
+                self.cmd.motor_cmd[i].mode = 0x01
+                self.cmd.motor_cmd[i].q    = q_target[j]
+                self.cmd.motor_cmd[i].kp   = kp
+                self.cmd.motor_cmd[i].kd   = kd
+                self.cmd.motor_cmd[i].dq   = 0.0
+                self.cmd.motor_cmd[i].tau  = 0.0
+            self.send_cmd()
+            time.sleep(1.0 / hz)
+
+    def fr_touch(self,
+                      
+                      raise_q = [-0.85, 1.25, -2.75],
+                      turn_q  = [-0.85, -1.4, -2.75],
+                      ready_q = [0, -1.4, -2.75],
+                      touch_q = [0, -1.4, -0.9],
+                      finished_q = [0.0, -1.4, -2.75],
+                      hold_s = 2.5):
         
-        # sim_mid_q = [0.0, -1.5, -1] # light
-        sim_mid_q = [0.0, -1.5, 0] # normal
-        # sim_mid_q = [0.0, -1.5, 1] # smash
-        moter_kp = 60.0
-        for rate_count in range(10, 400):
-            rate = float(rate_count) / 200.0
+        # move to raise_q
+        print("[INFO] Raising FR...")
+        self._move_fr_to(raise_q, t_move=0.5, kp=60.0, kd=5.0)
 
-            for joint_idx in range(3):
-                q_des[joint_idx] = self.joint_linear_interpolation(q_init[joint_idx], sim_mid_q[joint_idx], rate)
-            
-            for joint_idx in range(3):
-                joint_offset = go2.LegID["FR_0"]
-                i = joint_offset + joint_idx
-                # print("FR_0 motor state: ", self.channel.low_state.motor_state[go2.LegID["FR_0"]])
-                # print("FR_0 motor state: ", go2.LegID["FR_0"])
-                self.cmd.motor_cmd[i].mode = 0x01  # (PMSM) mode
-                self.cmd.motor_cmd[i].q= q_des[joint_idx]
-                self.cmd.motor_cmd[i].kp = moter_kp
-                self.cmd.motor_cmd[i].dq = 0.0 # Set to stop angular velocity(rad/s)
-                self.cmd.motor_cmd[i].kd = 1.0
-                self.cmd.motor_cmd[i].tau = 0.0
-                time.sleep(0.03)
-                self.send_cmd()                
-            
-        self.cmd.motor_cmd[go2.LegID["FR_0"]].tau = 5.0
-        self.send_cmd()
-        FR_0 = go2.LegID["FR_0"]
-        print(f"\n[INFO] Joint 'FR_0' pos: {self.channel.low_state.motor_state[FR_0].q}")
-        FR_1 = go2.LegID["FR_1"]
-        print(f"\n[INFO] Joint 'FR_1' pos: {self.channel.low_state.motor_state[FR_1].q}")
-        FR_2 = go2.LegID["FR_2"]
-        print(f"\n[INFO] Joint 'FR_2' pos: {self.channel.low_state.motor_state[FR_2].q} \n")                     
-  
+        # move to turn_q
+        print("[INFO] Turning FR...")
+        self._move_fr_to(turn_q, t_move=1.6)
+        
+        self._move_fr_to(ready_q, t_move=0.3)
+
+        print("[INFO] touching FR...")
+        self._move_fr_to(touch_q, t_move=0.5)
+
+
+        # brief hold
+        t0 = time.time()
+
+        while time.time() - t0 < hold_s:
+            for j in range(3):
+                i = j
+                self.cmd.motor_cmd[i].mode = 0x01
+
+                self.cmd.motor_cmd[i].kp   = 60.0
+                self.cmd.motor_cmd[i].kd   = 4.0
+                self.cmd.motor_cmd[i].dq   = 0.0
+                self.cmd.motor_cmd[i].tau  = 0.0
+            self.send_cmd()
+            time.sleep(0.01)
+
+        # move to finished_q
+        print("[INFO] Finishing FR...")
+        self._move_fr_to(finished_q, t_move=0.8)
+
+    def fr_back_Pos(self,
+                      
+                      front_q = [-0.85, -1.4, -2.75],
+                      raise_q = [-0.85, 1.25, -2.75],
+                      end_q  = [0, 1.25, -2.75]):
+        
+        # ready to get leg back
+        self._move_fr_to(front_q, t_move=0.2)
+        self._move_fr_to(raise_q, t_move=1.6)
+        self._move_fr_to(end_q, t_move=0.5)
+
 if __name__ == '__main__':
-
-    # 1. Create comm channel
     if len(sys.argv)>1:
         go2_channel = Go2Channel(sys.argv[1])
     else:
         go2_channel = Go2Channel()
-
 
     go2_leg = Go2Leg()
     go2_leg.go2_channel = go2_channel
     go2_leg.init_state()
     time.sleep(2.0)
 
-    go2_leg.Knock()
-
+    go2_leg.ready_state()
+    print("[INFO] The robot is ready to lay down.")
     time.sleep(2.0)
+    go2_leg.fr_touch()
+    time.sleep(0.3)
+    go2_leg.fr_back_Pos()
+

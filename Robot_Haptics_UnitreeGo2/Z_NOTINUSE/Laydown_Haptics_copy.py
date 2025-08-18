@@ -187,14 +187,13 @@ class Go2Leg:
             self.send_cmd()
             time.sleep(1.0 / hz)
 
-    def fr_knock(self,
+    def fr_prepare(self,
                       
-                      raise_q = [-0.85, 1.25, -2.75],
-                      turn_q  = [-0.85, -1.4, -2.75],
-                      ready_q = [0, -1.4, -2.75],
+                      raise_q  = [-0.75, 1.25, -2.75],
+                      turn_q  = [0.0, -1.4, -2.75],
                       knock_q = [0, -1.4, -0.9],
                       finished_q = [0.0, -1.4, -2.75],
-                      hold_s = 0.2):
+                      hold_s = 0.15):
         
         # move to raise_q
         print("[INFO] Raising FR...")
@@ -203,9 +202,9 @@ class Go2Leg:
         # move to turn_q
         print("[INFO] Turning FR...")
         self._move_fr_to(turn_q, t_move=1.6)
-        
-        self._move_fr_to(ready_q, t_move=0.3)
+        self._move_fr_to(turn_q, t_move=0.3)
 
+        # move to knock_q
         print("[INFO] knocking FR...")
         self._move_fr_to(knock_q, t_move=0.1)
 
@@ -229,89 +228,6 @@ class Go2Leg:
         print("[INFO] Finishing FR...")
         self._move_fr_to(finished_q, t_move=0.8)
 
-    def fr_knock_three(self,
-                      
-                      raise_q = [-0.85, 1.25, -2.75],
-                      turn_q  = [-0.85, -1.4, -2.75],
-                      ready_q = [0, -1.4, -2.75],
-                      knock_q = [0, -1.4, -0.9],
-                      finished_q = [0.0, -1.4, -2.75],
-                      hold_s = 0.2):
-        
-        # move to raise_q
-        print("[INFO] Raising FR...")
-        self._move_fr_to(raise_q, t_move=0.5, kp=60.0, kd=5.0)
-
-        # move to turn_q
-        print("[INFO] Turning FR...")
-        self._move_fr_to(turn_q, t_move=1.6)
-        
-        self._move_fr_to(ready_q, t_move=0.3)
-
-        # # knock three times
-        self._move_fr_to(knock_q, t_move=0.1)
-        
-        t0 = time.time()
-
-        while time.time() - t0 < hold_s:
-            for j in range(3):
-                i = j
-                self.cmd.motor_cmd[i].mode = 0x01
-
-                self.cmd.motor_cmd[i].kp   = 60.0
-                self.cmd.motor_cmd[i].kd   = 4.0
-                self.cmd.motor_cmd[i].dq   = 0.0
-                self.cmd.motor_cmd[i].tau  = 0.0
-            self.send_cmd()
-            time.sleep(0.01)
-        self._move_fr_to(ready_q, t_move=0.3)
-
-        self._move_fr_to(knock_q, t_move=0.1)
-        
-        t0 = time.time()
-
-        while time.time() - t0 < hold_s:
-            for j in range(3):
-                i = j
-                self.cmd.motor_cmd[i].mode = 0x01
-
-                self.cmd.motor_cmd[i].kp   = 60.0
-                self.cmd.motor_cmd[i].kd   = 4.0
-                self.cmd.motor_cmd[i].dq   = 0.0
-                self.cmd.motor_cmd[i].tau  = 0.0
-            self.send_cmd()
-            time.sleep(0.01)
-        self._move_fr_to(ready_q, t_move=0.3)
-        self._move_fr_to(knock_q, t_move=0.1)
-        
-        t0 = time.time()
-
-        while time.time() - t0 < hold_s:
-            for j in range(3):
-                i = j
-                self.cmd.motor_cmd[i].mode = 0x01
-
-                self.cmd.motor_cmd[i].kp   = 60.0
-                self.cmd.motor_cmd[i].kd   = 4.0
-                self.cmd.motor_cmd[i].dq   = 0.0
-                self.cmd.motor_cmd[i].tau  = 0.0
-            self.send_cmd()
-            time.sleep(0.01)
-        #move to finished_q
-        print("[INFO] Finishing FR...")
-        self._move_fr_to(finished_q, t_move=0.8)
-
-
-    def fr_back_Pos(self,
-                      
-                      front_q = [-0.85, -1.4, -2.75],
-                      raise_q = [-0.85, 1.25, -2.75],
-                      end_q  = [0, 1.25, -2.75]):
-        
-        # ready to get leg back
-        self._move_fr_to(front_q, t_move=0.2)
-        self._move_fr_to(raise_q, t_move=1.6)
-        self._move_fr_to(end_q, t_move=0.5)
 
 if __name__ == '__main__':
     if len(sys.argv)>1:
@@ -327,7 +243,5 @@ if __name__ == '__main__':
     go2_leg.ready_state()
     print("[INFO] The robot is ready to lay down.")
     time.sleep(2.0)
-    go2_leg.fr_knock()
-    time.sleep(0.3)
-    go2_leg.fr_back_Pos()
+    go2_leg.fr_prepare()
 

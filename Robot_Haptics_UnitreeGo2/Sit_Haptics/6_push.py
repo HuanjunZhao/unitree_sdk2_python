@@ -256,7 +256,7 @@ class Go2Leg:
         self._move_fr_to(contact_q, t_move=1.0, kp=50.0, kd=3.0)
 
         # push forward (sustained force)
-        self._move_fr_to(push_q, t_move=1.0, kp=30.0, kd=5.0)
+        self._move_fr_to(push_q, t_move=2.0, kp=30.0, kd=5.0)
 
         # maintain forward pressure
         t0 = time.time()

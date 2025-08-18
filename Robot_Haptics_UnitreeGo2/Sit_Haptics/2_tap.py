@@ -255,10 +255,10 @@ class Go2Leg:
         self._move_fl_to(finished_q, t_move=0.6, kp=60.0, kd=5.0)
         
          # Step 1: approach 
-        self._move_fr_to([0.0, 0.0, -2.75], t_move=approach_t, kp=55.0, kd=3.0)
+        self._move_fr_to(approach_q, t_move=approach_t, kp=55.0, kd=3.0)
 
         # Step 2: quick tap down
-        self._move_fr_to([0.0, 0.0, -0.9], t_move=0.4, kp=65.0, kd=5.0)
+        self._move_fr_to(contact_q, t_move=0.5, kp=65.0, kd=5.0)
 
         # Step 3: brief hold at contact
         t0 = time.time()
