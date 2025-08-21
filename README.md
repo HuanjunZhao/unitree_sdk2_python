@@ -1,5 +1,5 @@
 # unitree_sdk2_python
-Python interface for unitree sdk2
+Python interface for unitree sdk2 from Unitree Robotics. Research purpose only, not for commercial use.
 
 # Installation
 ## Dependencies
