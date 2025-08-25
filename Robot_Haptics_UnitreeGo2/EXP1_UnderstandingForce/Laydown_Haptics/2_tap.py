@@ -196,18 +196,13 @@ class Go2Leg:
                         finished_q = [0.0, -1.4, -2.75],
                         hold_s = 0.5):
             
-           # move to raise_q
-        print("[INFO] Raising FR...")
         self._move_fr_to(raise_q, t_move=0.5, kp=60.0, kd=5.0)
 
-        # move to turn_q
-        print("[INFO] Turning FR...")
         self._move_fr_to(turn_q, t_move=1.6)
 
         self._move_fr_to(ready_q, t_move=0.3)
 
         for i1 in range(10):
-            print("[INFO] tapping FR...")
             
             self._move_fr_to(middle_q, t_move=0.5)
             self._hold_current_Pos(q_target = middle_q)
