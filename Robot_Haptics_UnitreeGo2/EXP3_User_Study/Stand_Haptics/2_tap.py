@@ -62,11 +62,7 @@ class Go2Leg:
                 -0.255, +0.953, -1.648,   # RR (stance)
                 -0.251, +1.073, -1.956    # RL (stance)
                 ]
-        self._middlePos = [-0.226, -1.16, -1.5,     # FR
-                -0.226, +0.659, -1.085,   # FL (stance)
-                -0.255, +0.953, -1.648,   # RR (stance)
-                -0.251, +1.073, -1.956    # RL (stance)
-                ]
+
     @property
     def go2_channel(self):
         return self.channel
@@ -104,7 +100,7 @@ class Go2Leg:
         for joint_idx in range(12):
             self._startPos[joint_idx] = self.go2_channel.ReadMotorPosition(joint_idx)
 
-    def _hold_current_Pos(self, q_target, t_lock_time = 5.0, hz=200, kp=80.0, kd=5.0):
+    def _hold_current_Pos(self, q_target, t_lock_time = 5.0, hz=200, kp=60.0, kd=5.0):
         """
         Lock all joints at their current positions.
         """
@@ -135,7 +131,7 @@ class Go2Leg:
             q_cmd = [q_now[k]*(1.0 - alpha) + q_target[k]*alpha for k in range(12)]
 
             # command all joints
-            for j in range(3):
+            for j in range(12):
                 i = j  # all indices are 0-11
                 self.cmd.motor_cmd[i].mode = 0x01
                 self.cmd.motor_cmd[i].q    = q_cmd[j]
@@ -143,14 +139,7 @@ class Go2Leg:
                 self.cmd.motor_cmd[i].kd   = kd
                 self.cmd.motor_cmd[i].dq   = 0.0
                 self.cmd.motor_cmd[i].tau  = 0.0
-            for j in range(3,12):
-                i = j
-                self.cmd.motor_cmd[i].mode = 0x01
-                self.cmd.motor_cmd[i].q    = q_target[j]
-                self.cmd.motor_cmd[i].kp   = 70
-                self.cmd.motor_cmd[i].kd   = 70
-                self.cmd.motor_cmd[i].dq   = 0.0
-                self.cmd.motor_cmd[i].tau  = 0.0
+
             # send once per cycle
             self.send_cmd()
             time.sleep(1.0 / hz)
@@ -177,7 +166,8 @@ class Go2Leg:
         self._move_all_to(self.kf1_weight_shift, t_move=0.2, hz=200, kp=60.0, kd=4.0)
         self._hold_current_Pos(q_target=self.kf1_weight_shift, t_lock_time=1.0)
 
-        self._move_all_to(self.fr_contact, t_move=1.0, hz=200, kp=30.0, kd=1.0)
+        self._move_all_to(self.fr_contact, t_move=1.0, hz=200, kp=60.0, kd=5.0)
+        # self._move_all_to(self.fr_contact, t_move=1.0, hz=200, kp=30.0, kd=1.0)
         self._hold_current_Pos(q_target=self.fr_contact, t_lock_time=2.5)
 
         # Move to stand position

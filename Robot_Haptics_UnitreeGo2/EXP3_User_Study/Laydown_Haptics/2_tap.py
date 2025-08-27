@@ -169,7 +169,7 @@ class Go2Leg:
             self.send_cmd()
             time.sleep(1.0 / hz)
 
-    def _hold_current_Pos(self, q_target, t_lock_time = 2.0, hz=200, kp=60.0, kd=5.0):
+    def _hold_current_Pos(self, q_target, t_lock_time = 1.0, hz=200, kp=60.0, kd=5.0):
         """
         Lock all joints at their current positions.
         """
@@ -247,7 +247,7 @@ if __name__ == '__main__':
     go2_leg.init_state()
     go2_leg.ready_state()
 
-    go2_leg.fr_tap_ten()
+    go2_leg.fr_tap()
     time.sleep(0.3)
     go2_leg.fr_back_Pos()
 

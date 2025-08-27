@@ -160,36 +160,6 @@ class Go2Leg:
             self.send_cmd()
             time.sleep(1.0 / hz)
 
-    # def appoaching(self):
-
-    #     self._move_all_to(self._middlePos, t_move=0.5, hz=200, kp=70.0, kd=5.0)
-        
-    #     n = max(1, int(2.0 * 200))
-    #     for step in range(1, n + 1):
-    #         for joint_idx in range(12):
-    #             self.cmd.motor_cmd[joint_idx].mode = 0x01
-    #             self.cmd.motor_cmd[joint_idx].q = self._middlePos[joint_idx]
-    #             self.cmd.motor_cmd[joint_idx].kp = 70
-    #             self.cmd.motor_cmd[joint_idx].kd = 5
-    #             self.cmd.motor_cmd[joint_idx].dq = 0.0
-    #             self.cmd.motor_cmd[joint_idx].tau = 0.0
-    #         self.send_cmd()
-    #         time.sleep(1.0 / 200)
-
-    #     self._move_all_to(self.fr_contact, t_move=1.0, hz=200, kp=70.0, kd=5.0)
-
-    #     n = max(1, int(0.5 * 200))
-    #     for step in range(1, n + 1):
-    #         for joint_idx in range(12):
-    #             self.cmd.motor_cmd[joint_idx].mode = 0x01
-    #             self.cmd.motor_cmd[joint_idx].q = self.fr_contact[joint_idx]
-    #             self.cmd.motor_cmd[joint_idx].kp = 70
-    #             self.cmd.motor_cmd[joint_idx].kd = 5
-    #             self.cmd.motor_cmd[joint_idx].dq = 0.0
-    #             self.cmd.motor_cmd[joint_idx].tau = 0.0
-    #         self.send_cmd()
-    #         time.sleep(1.0 / 200)
-
     def fr_double_tap(self):
         # Move to stand position
         self._move_all_to(self._standPos, t_move=1.5, hz=200, kp=55.0, kd=4.0)
@@ -201,7 +171,7 @@ class Go2Leg:
 
        
         self._move_all_to(self.fr_contact, t_move=1.0, hz=200, kp=70.0, kd=5.0)
-        self._hold_current_Pos(t_lock_time=2.5, hz=200, kp=70.0, kd=5.0)
+        self._hold_current_Pos(t_lock_time=2, hz=200, kp=70.0, kd=5.0)
 
 
         self._move_all_to(self.kf1_weight_shift, t_move=0.2, hz=200, kp=55.0, kd=4.0)
@@ -209,7 +179,7 @@ class Go2Leg:
 
        
         self._move_all_to(self.fr_contact, t_move=1.0, hz=200, kp=70.0, kd=5.0)
-        self._hold_current_Pos(t_lock_time=2.5, hz=200, kp=70.0, kd=5.0)
+        self._hold_current_Pos(t_lock_time=2, hz=200, kp=70.0, kd=5.0)
 
 
         # Move to stand position
