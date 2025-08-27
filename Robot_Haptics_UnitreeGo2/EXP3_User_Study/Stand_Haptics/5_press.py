@@ -63,7 +63,7 @@ class Go2Leg:
                 -0.251, +1.073, -1.956    # RL (stance)
                 ]
         self.fr_contact1 = [
-                -0.226, -1.13, -0.9,     # FR
+                -0.226, -1, -0.9,     # FR
                 -0.226, +0.659, -1.085,   # FL (stance)
                 -0.255, +0.953, -1.648,   # RR (stance)
                 -0.251, +1.073, -1.956    # RL (stance)
@@ -162,7 +162,7 @@ class Go2Leg:
             self.send_cmd()
             time.sleep(1.0 / hz)
 
-    def fr_press(self):
+    def fr_push(self):
         # Move to stand position
         self._move_all_to(self._standPos, t_move=1.5, hz=200, kp=55.0, kd=4.0)
         self._hold_current_Pos(t_lock_time=1.0)
@@ -171,29 +171,8 @@ class Go2Leg:
         self._move_all_to(self.kf1_weight_shift, t_move=0.2, hz=200, kp=55.0, kd=4.0)
         self._hold_current_Pos(t_lock_time=1.0)
 
-        self._move_all_to(self.fr_contact, t_move=3, hz=200, kp=70.0, kd=5.0)
-        # self._hold_current_Pos(t_lock_time=2.5, hz=200, kp=70.0, kd=5.0)
-        # brief hold
-        n = max(1, int(3 * 200))
-        for step in range(1, n + 1):
-            for j in range(12):
-                i = j
-                if j < 3:
-                    self.cmd.motor_cmd[i].q    = self.fr_contact1[i]
-                    self.cmd.motor_cmd[i].mode = 0x01
-                    self.cmd.motor_cmd[i].kp   = 10.0
-                    self.cmd.motor_cmd[i].kd   = 1.0
-                    self.cmd.motor_cmd[i].dq   = 0.0
-                    self.cmd.motor_cmd[i].tau  = 0.0
-                else:
-                    self.cmd.motor_cmd[i].mode = 0x01
-                    self.cmd.motor_cmd[i].q    = self.fr_contact1[i]
-                    self.cmd.motor_cmd[i].kp   = 70.0
-                    self.cmd.motor_cmd[i].kd   = 5.0
-                    self.cmd.motor_cmd[i].dq   = 0.0
-                    self.cmd.motor_cmd[i].tau  = 0.0
-            self.send_cmd()
-            time.sleep(0.01)
+        self._move_all_to(self.fr_contact, t_move=1, hz=200, kp=70.0, kd=5.0)
+        self._move_all_to(self.fr_contact1, t_move=2, hz=200, kp=70.0, kd=5.0)
 
         # Move to stand position
         self._move_all_to(self._standPos, t_move=0.4, hz=200, kp=70.0, kd=4.0)
@@ -211,4 +190,4 @@ if __name__ == '__main__':
     go2_leg.init_state()
     go2_leg.ready_state()
 
-    go2_leg.fr_press()
+    go2_leg.fr_push()

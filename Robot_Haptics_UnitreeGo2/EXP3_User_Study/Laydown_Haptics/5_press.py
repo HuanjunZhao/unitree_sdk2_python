@@ -48,27 +48,6 @@ class Go2Leg:
         self.cmd = unitree_go_msg_dds__LowCmd_()
         self._startPos = [0.0] * 12
 
-        # Standing pos (need verification) 
-        self._standPos = [0, 0.80, -1.50, -0.03, 0.80, -1.50, 
-                          0.045063, 0.718109, -1.550600, -0.036850, 0.722423, -1.539088]
-        # lay down pos
-        # self._layPos = [0, 1.3, -1.30, -0.03, 0.80, -1.50,
-        
-        # Sitting on foot pos 
-        # self._sitonFootPos = [-0.07042285,  1.56507985, -2.84921885, -0.1115451, 1.44777473, -2.82264304, 
-        #     -0.003666  ,  2.79740024, -2.83746076,  0.0114518, 2.83350126, -2.89407706]
-        # Sitting on foot pos (verified)
-        self._sitonFootPos = [0.027953, 1.396641, -1.059938, -0.048694, 1.459891, -1.076525, 
-            -0.003666  ,  2.79740024, -2.83746076,  0.0114518, 2.83350126, -2.89407706]
-        
-        # self._sitPos = [0,  1.65, -1.3,  0,  1.65,
-        #                 -1.32681207, -0.11140353,  2.01383797, -2.83593893,  0.13425752,
-        #                 2.05665048, -2.89283442]
-        self._endingPos = [0.0, 0.0, -0.9, -0.048694, 1.459891, -1.076525, 
-            -0.003666  ,  2.79740024, -2.83746076,  0.0114518, 2.83350126, -2.89407706]
-        self._tmpPos = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-
-
     @property
     def go2_channel(self):
         return self.channel
@@ -200,16 +179,11 @@ class Go2Leg:
                       hold_s = 3):
         
         # move to raise_q
-        print("[INFO] Raising FR...")
         self._move_fr_to(raise_q, t_move=0.5, kp=60.0, kd=5.0)
 
         # move to turn_q
-        print("[INFO] Turning FR...")
         self._move_fr_to(turn_q, t_move=1.6)
-        
         self._move_fr_to(ready_q, t_move=0.3)
-
-        print("[INFO] pressing FR...")
         self._move_fr_to(press_q, t_move=3, kp=65.0, kd=5.0)
 
 
@@ -224,12 +198,11 @@ class Go2Leg:
                 self.cmd.motor_cmd[i].kp   = 60.0
                 self.cmd.motor_cmd[i].kd   = 4.0
                 self.cmd.motor_cmd[i].dq   = 0.0
-                self.cmd.motor_cmd[i].tau  = 0.0
+                self.cmd.motor_cmd[i].tau  = 1.0
             self.send_cmd()
             time.sleep(0.01)
 
         # move to finished_q
-        print("[INFO] Finishing FR...")
         self._move_fr_to(finished_q, t_move=0.8)
 
     def fr_back_Pos(self,

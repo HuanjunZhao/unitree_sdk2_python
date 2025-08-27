@@ -100,7 +100,7 @@ class Go2Leg:
         for joint_idx in range(12):
             self._startPos[joint_idx] = self.go2_channel.ReadMotorPosition(joint_idx)
 
-    def _hold_current_Pos(self, t_lock_time = 5.0, hz=200, kp=60.0, kd=5.0):
+    def _hold_current_Pos(self, q_target, t_lock_time = 5.0, hz=200, kp=60.0, kd=5.0):
         """
         Lock all joints at their current positions.
         """
@@ -108,6 +108,7 @@ class Go2Leg:
         for step in range(1, n + 1):
             for joint_idx in range(12):
                 self.cmd.motor_cmd[joint_idx].mode = 0x01
+                self.cmd.motor_cmd[joint_idx].q = q_target[joint_idx]
                 self.cmd.motor_cmd[joint_idx].kp = kp
                 self.cmd.motor_cmd[joint_idx].kd = kd
                 self.cmd.motor_cmd[joint_idx].dq = 0.0
@@ -159,19 +160,19 @@ class Go2Leg:
     def fr_knock(self):
         # Move to stand position
         self._move_all_to(self._standPos, t_move=1.5, hz=200, kp=55.0, kd=4.0)
-        self._hold_current_Pos(t_lock_time=1.0)
-        
+        self._hold_current_Pos(q_target= self._standPos, t_lock_time=1.0)
+
         # Preform weight shift to prepare for knock
         self._move_all_to(self.kf1_weight_shift, t_move=0.2, hz=200, kp=55.0, kd=4.0)
-        self._hold_current_Pos(t_lock_time=1.0)
+        self._hold_current_Pos(q_target= self.kf1_weight_shift, t_lock_time=1.0)
 
         self._move_all_to(self.fr_contact, t_move=0.05, hz=200, kp=70.0, kd=5.0)
-        self._hold_current_Pos(t_lock_time=0.2, hz=200, kp=70.0, kd=5.0)
+        self._hold_current_Pos(q_target= self.fr_contact, t_lock_time=0.2)
 
         # Move to stand position
         self._move_all_to(self._standPos, t_move=0.4, hz=200, kp=70.0, kd=4.0)
-        self._hold_current_Pos(t_lock_time=1.0)
-        self._move_all_to(self.laydownPos, t_move=1.5, hz=200, kp=55.0, kd=4.0)
+        self._hold_current_Pos(q_target= self._standPos, t_lock_time=1.0)
+        self._move_all_to(self.laydownPos, t_move=1.5, hz=200, kp=70.0, kd=4.0)
 
 if __name__ == '__main__':
     if len(sys.argv)>1:

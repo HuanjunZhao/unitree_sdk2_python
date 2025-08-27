@@ -37,6 +37,8 @@ class Go2Channel:
         self.low_state = msg
 
     def ReadMotorPosition(self, joint_idx :int=0):
+        if self.low_state is None or self.low_state.motor_state is None:
+            return None
         q = self.low_state.motor_state[joint_idx].q
         return q
     
@@ -47,22 +49,9 @@ class Go2Leg:
         self.cmd = unitree_go_msg_dds__LowCmd_()
         self._startPos = [0.0] * 12
 
-        # Standing pos (need verification) 
-        self._standPos = [0, 0.80, -1.50, -0.03, 0.80, -1.50, 
-                          0.045063, 0.718109, -1.550600, -0.036850, 0.722423, -1.539088]
-        # lay down pos
-        # self._layPos = [0, 1.3, -1.30, -0.03, 0.80, -1.50,
-        
-        # Sitting on foot pos 
-        # self._sitonFootPos = [-0.07042285,  1.56507985, -2.84921885, -0.1115451, 1.44777473, -2.82264304, 
-        #     -0.003666  ,  2.79740024, -2.83746076,  0.0114518, 2.83350126, -2.89407706]
-        # Sitting on foot pos (verified)
-        self._sitonFootPos = [0.027953, 1.396641, -1.059938, -0.048694, 1.459891, -1.076525, 
-            -0.003666  ,  2.79740024, -2.83746076,  0.0114518, 2.83350126, -2.89407706]
-        
-        # self._sitPos = [0,  1.65, -1.3,  0,  1.65,
-        #                 -1.32681207, -0.11140353,  2.01383797, -2.83593893,  0.13425752,
-        #                 2.05665048, -2.89283442]
+        self._sitonFootPos = [0.0, 1.4, -1.0, 0.0, 1.4, -1.0, 0.0,  2.85, -2.83,  0.0, 2.85, -2.83]
+        self._sitonFootPos1 = [0.0, 0.0, -1.5, 0.0, 1.5, -2.75, 0.0, 2.85, -2.83, 0.0, 2.85, -2.83]
+        self._laydownPos = [0.0, 1.36, -2.65, 0.0, 1.36, -2.65, -0.2, 1.36, -2.65, -0.2, 1.36, -2.65]
         self._endingPos = [0.0, 0.0, -0.9, -0.048694, 1.459891, -1.076525, 
             -0.003666  ,  2.79740024, -2.83746076,  0.0114518, 2.83350126, -2.89407706]
         self._tmpPos = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
@@ -100,6 +89,8 @@ class Go2Leg:
         self.send_cmd()
 
     def ready_state(self):
+        while self.go2_channel.low_state is None:
+            time.sleep(0.01)
         for joint_idx in range(12):
             self._startPos[joint_idx] = self.go2_channel.ReadMotorPosition(joint_idx)
 
@@ -238,25 +229,63 @@ class Go2Leg:
             self.send_cmd()
             time.sleep(1.0 / hz)
 
+    def _move_all_to(self, q_target, t_move=1.2, hz=200, kp=55.0, kd=4.0, lock_kp=60.0, lock_kd=5.0):
+        """
+        Smoothly move all joints to q_target.
+        While moving, keep all other joints locked at their captured angles.
+        """
+        # start from current positions
+        q_now = [self.go2_channel.ReadMotorPosition(i) for i in range(12)]
+
+        n = max(1, int(t_move * hz))
+        for step in range(1, n + 1):
+            alpha = step / float(n)
+            q_cmd = [q_now[k]*(1.0 - alpha) + q_target[k]*alpha for k in range(12)]
+
+            # command all joints
+            for j in range(12):
+                i = j  # all indices are 0-11
+                self.cmd.motor_cmd[i].mode = 0x01
+                self.cmd.motor_cmd[i].q    = q_cmd[j]
+                self.cmd.motor_cmd[i].kp   = kp
+                self.cmd.motor_cmd[i].kd   = kd
+                self.cmd.motor_cmd[i].dq   = 0.0
+                self.cmd.motor_cmd[i].tau  = 2
+
+            # send once per cycle
+            self.send_cmd()
+            time.sleep(1.0 / hz)
+
+        # small hold at the end to settle
+        for _ in range(int(0.3 * hz)):
+            for j in range(12):
+                i = j
+                self.cmd.motor_cmd[i].mode = 0x01
+                self.cmd.motor_cmd[i].q    = q_target[j]
+                self.cmd.motor_cmd[i].kp   = kp
+                self.cmd.motor_cmd[i].kd   = kd
+                self.cmd.motor_cmd[i].dq   = 0.0
+                self.cmd.motor_cmd[i].tau  = 0.0
+            self.send_cmd()
+            time.sleep(1.0 / hz)
+
     def fr_push(self,
                 approach_q=[0.0, 0.0, -2.75],
                 contact_q  = [0.0, 0.0, -0.9],
                 push_q=[0., 0.2, -0.9],
                 hold_s=2.5,
                 finished_q=[0.0, 0.8, -2.5]):
-        print("[INFO] Performing FR push...")
 
         # move the FL to finished_q
         self._move_fl_to(finished_q, t_move=0.6, kp=60.0, kd=5.0)
 
-         # Step 1: approach
+        # Step 1: approach
         self._move_fr_to(approach_q, t_move=0.6, kp=55.0, kd=3.0)
-
         # contact target
         self._move_fr_to(contact_q, t_move=1.0, kp=50.0, kd=3.0)
 
         # push forward (sustained force)
-        self._move_fr_to(push_q, t_move=2.0, kp=30.0, kd=5.0)
+        self._move_fr_to(push_q, t_move=2.0, kp=45.0, kd=5.0)
 
         # maintain forward pressure
         t0 = time.time()
@@ -276,30 +305,7 @@ class Go2Leg:
         # retreat to finish pose
         self._move_fr_to(finished_q, t_move=1.0, kp=55.0, kd=4.0)
         print("[INFO] Push complete.")
-
-    def sit_on_foot(self):
-        Kp = 60.0
-        Kd = 5.0
-        duration = 300  # excuted duration, normal is 500
-        percent = 0.0
-
-        while percent < 1.0:
-            percent += 1.0 / duration
-            percent = min(percent, 1.0)
-            for joint_idx in range(12):
-                target_q = (1.0 - percent) * self._startPos[joint_idx] + percent * self._sitonFootPos[joint_idx]
-                self.cmd.motor_cmd[joint_idx].mode = 0x01
-                self.cmd.motor_cmd[joint_idx].q = target_q
-                self.cmd.motor_cmd[joint_idx].kp = Kp
-                self.cmd.motor_cmd[joint_idx].dq = 0.0
-                self.cmd.motor_cmd[joint_idx].kd = Kd
-                self.cmd.motor_cmd[joint_idx].tau = 0.0
-                self.send_cmd()
-        print("[INFO] Sitting motion complete.")
-        self._tmpPos = self.cmd.motor_cmd
-        # self.stable()
-
-    
+ 
 
 if __name__ == '__main__':
     if len(sys.argv)>1:
@@ -310,14 +316,9 @@ if __name__ == '__main__':
     go2_leg = Go2Leg()
     go2_leg.go2_channel = go2_channel
     go2_leg.init_state()
-    time.sleep(2.0)
-
     go2_leg.ready_state()
-    print("[INFO] The robot is ready to sit down and prepare for on foot.")
+    go2_leg._move_all_to(go2_leg._sitonFootPos, t_move=0.3, hz=200, kp=70.0, kd=5.0)
 
-    time.sleep(2.0)
-    go2_leg.sit_on_foot()
-    while True:
-        go2_leg.fr_push()
     go2_leg.fr_push()
-    go2_leg.stable()
+    go2_leg._move_all_to(go2_leg._sitonFootPos, t_move=1.0, kp=60.0, kd=5.0)
+    go2_leg._move_all_to(go2_leg._laydownPos, t_move=1.5, kp=60.0, kd=5.0)
